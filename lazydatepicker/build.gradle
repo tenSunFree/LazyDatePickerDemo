@@ -1,0 +1,61 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
+
+android {
+    compileSdkVersion 27
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+//region PUBLISH TO JCENTER & MAVEN CENTRAL
+task sourceJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier "sources"
+}
+
+// Create the publication with the pom configuration:
+publishing {
+    publications {
+        MyPublication(MavenPublication) {
+            groupId 'com.mikhaellopez'
+            artifactId 'lazydatepicker'
+            version "1.0.0"
+            artifact(sourceJar)
+            artifact("$buildDir/outputs/aar/lazydatepicker-release.aar")
+        }
+    }
+}
+
+// Bintray config
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    publications = ['MyPublication']
+    pkg {
+        repo = "maven"
+        name = "com.mikhaellopez:lazydatepicker"
+        desc = 'This is an Android project to offer an alternative to the native Android Date Picker.'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/lopspower/LazyDatePicker.git'
+        version {
+            name = "1.0.0"
+            vcsTag = "1.0.0"
+            released = new Date()
+        }
+    }
+}
+//endregion
